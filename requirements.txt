@@ -1,0 +1,2 @@
+pydactyl
+websocket-client
