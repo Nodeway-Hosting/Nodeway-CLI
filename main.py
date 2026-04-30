@@ -10,10 +10,7 @@ def load_globals():
         with open(GLOBALS_FILE, "r") as f:
             return json.load(f)
     except FileNotFoundError:
-        return {"version": "1.0.0", 
-                "API_KEY": "", 
-                "logged_in": False
-                }
+        return {"version": "1.0.0", "API_KEY": "", "logged_in": False}
     
 def save_globals(data):
     with open(GLOBALS_FILE, "w") as f:
@@ -35,23 +32,27 @@ def show_banner():
     """)
     print("Run 'help' to see available commands")
 
-
-def cmd_help(_):
+def cmd_help(data, args):
     print("""
 Available commands:
 help
 version
 login
 exit
+listservers
+srvutil
+whoami
+console
+servers <start|stop|restart>
 """)
     
-def cmd_version(data):
+def cmd_version(data, args):
     print("Version:", data.get("version", "unknown"))
 
-def cmd_exit():
+def cmd_exit(data, args):
     sys.exit()
 
-def cmd_login(data):
+def cmd_login(data, args):
     apikey = getpass.getpass("Enter your client API key: ")
 
     try:
@@ -59,7 +60,6 @@ def cmd_login(data):
         account = client.client.account.get_account()
         username = account["attributes"]["username"]
         email = account["attributes"]["email"]
-
 
         data["API_KEY"] = apikey
         data["logged_in"] = True
@@ -73,8 +73,8 @@ def cmd_login(data):
         print("Login failed. Invalid API key")
         print(e)
 
-def cmd_list_servers(data):
-    apikey = data["API_KEY"]
+def cmd_list_servers(data, args):
+    apikey = data.get("API_KEY")
 
     if not apikey:
         print("Not logged in.")
@@ -82,7 +82,6 @@ def cmd_list_servers(data):
 
     try:
         client = PterodactylClient(PANEL_URL, apikey)
-
         servers = client.client.servers.list_servers()
 
         print("Here are your servers:\n")
@@ -95,19 +94,18 @@ def cmd_list_servers(data):
         print("Couldn't fetch.")
         print(e)
 
-def cmd_srvutil(data):
+def cmd_srvutil(data, args):
     apikey = data.get("API_KEY")
-    server_id = input("Enter the server ID you wanna check utilizations for: ").strip()
 
     if not apikey:
         print("Not logged in.")
         return
-    
+
+    server_id = input("Enter the server ID: ").strip()
+
     try:
         client = PterodactylClient(PANEL_URL, apikey)
         util = client.client.servers.get_server_utilization(server_id)
-
-        # Handle both response formats
         attrs = util.get("attributes", util)
 
         print("\nServer Utilization:")
@@ -120,8 +118,9 @@ def cmd_srvutil(data):
         print("Couldn't fetch")
         print(e)
 
-def cmd_whoami(data):
+def cmd_whoami(data, args):
     apikey = data.get("API_KEY")
+
     if not apikey:
         print("Not logged in.")
         return
@@ -132,45 +131,75 @@ def cmd_whoami(data):
         username = account["attributes"]["username"]
         email = account["attributes"]["email"]
 
-        data["API_KEY"] = apikey
-        data["logged_in"] = True
-        data["username"] = username
-        data["email"] = email
-
         print("WHOAMI:")
-        print("username: ", username)
+        print("username:", username)
         print("email:", email)
         print("")
     except Exception as e:
         print("Not logged in.")
         print(e)
-    
 
-def cmd_console(data):
+def select_server(client):
+    servers = client.client.servers.list_servers()
+
+    if not servers["data"]:
+        print("No servers found.")
+        return None
+
+    print("\nSelect a server:\n")
+    for i, server in enumerate(servers["data"]):
+        attrs = server["attributes"]
+        print(f"{i+1}. {attrs['name']} ({attrs['identifier']})")
+
+    try:
+        choice = int(input("\nEnter number: ")) - 1
+        return servers["data"][choice]["attributes"]["identifier"]
+    except:
+        print("Invalid selection.")
+        return None
+
+def cmd_servers(data, args):
     apikey = data.get("API_KEY")
+
+    if not apikey:
+        print("Not logged in.")
+        return
+
+    if not args:
+        print("Usage: servers <start|stop|restart>")
+        return
+
+    action = args[0].lower()
+
+    if action not in ["start", "stop", "restart"]:
+        print("Invalid action.")
+        return
+
+    try:
+        client = PterodactylClient(PANEL_URL, apikey)
+        server_id = select_server(client)
+
+        if not server_id:
+            return
+
+        client.client.servers.send_power_action(server_id, action)
+        print(f"Server {action} command sent.")
+
+    except Exception as e:
+        print(e)
+
+def cmd_console(data, args):
+    apikey = data.get("API_KEY")
+
     if not apikey:
         print("Not logged in.")
         return
 
     try:
         client = PterodactylClient(PANEL_URL, apikey)
+        server_id = select_server(client)
 
-        servers = client.client.servers.list_servers()
-
-        if not servers["data"]:
-            print("No servers found.")
-            return
-
-        print("\nSelect a server:\n")
-        for i, server in enumerate(servers["data"]):
-            attrs = server["attributes"]
-            print(f"{i+1}. {attrs['name']} ({attrs['identifier']})")
-
-        try:
-            choice = int(input("\nEnter number: ")) - 1
-            server_id = servers["data"][choice]["attributes"]["identifier"]
-        except (ValueError, IndexError):
-            print("Invalid selection.")
+        if not server_id:
             return
 
         ws_data = client.client.servers.get_websocket(server_id)
@@ -183,20 +212,14 @@ def cmd_console(data):
         import ssl
 
         def on_open(ws):
-            ws.send(json.dumps({
-                "event": "auth",
-                "args": [token]
-            }))
+            ws.send(json.dumps({"event": "auth", "args": [token]}))
 
             def send_input():
                 while True:
                     try:
                         cmd = input()
-                        ws.send(json.dumps({
-                            "event": "send command",
-                            "args": [cmd]
-                        }))
-                    except Exception:
+                        ws.send(json.dumps({"event": "send command", "args": [cmd]}))
+                    except:
                         break
 
             threading.Thread(target=send_input, daemon=True).start()
@@ -206,18 +229,16 @@ def cmd_console(data):
 
             if msg.get("event") == "auth success":
                 print("Connected to console.\n")
-
             elif msg.get("event") == "auth error":
                 print("Authentication failed.")
                 ws.close()
-
             elif msg.get("event") == "console output":
                 print("".join(msg["args"]), end="")
 
         def on_error(ws, error):
             print("Error:", error)
 
-        def on_close(ws, close_status_code, close_msg):
+        def on_close(ws, code, msg):
             print("\nConnection closed.")
 
         ws = websocket.WebSocketApp(
@@ -238,7 +259,6 @@ def cmd_console(data):
         print("Failed to connect to console.")
         print(e)
 
-
 COMMANDS = {
     "help": cmd_help,
     "version": cmd_version,
@@ -247,7 +267,8 @@ COMMANDS = {
     "listservers": cmd_list_servers,
     "srvutil": cmd_srvutil,
     "whoami": cmd_whoami,
-    "console": cmd_console
+    "console": cmd_console,
+    "servers": cmd_servers
 }
 
 def main():
@@ -255,10 +276,19 @@ def main():
     show_banner()
 
     while True:
-        choice = input("> ").strip()
-        command = COMMANDS.get(choice)
-        if command:
-            command(data)
+        raw = input("> ").strip()
+        parts = raw.split()
+
+        if not parts:
+            continue
+
+        command = parts[0]
+        args = parts[1:]
+
+        handler = COMMANDS.get(command)
+
+        if handler:
+            handler(data, args)
         else:
             print("Invalid command. Try 'help'.")
 
