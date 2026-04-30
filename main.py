@@ -1,7 +1,6 @@
 from pydactyl import PterodactylClient
-import json, sys, getpass
+import json, sys, getpass, websocket
 
-import pydactyl as pyd
 
 GLOBALS_FILE = "globals.json"
 PANEL_URL = "https://game.serververs.com"
@@ -147,6 +146,97 @@ def cmd_whoami(data):
         print(e)
     
 
+def cmd_console(data):
+    apikey = data.get("API_KEY")
+    if not apikey:
+        print("Not logged in.")
+        return
+
+    try:
+        client = PterodactylClient(PANEL_URL, apikey)
+
+        servers = client.client.servers.list_servers()
+
+        if not servers["data"]:
+            print("No servers found.")
+            return
+
+        print("\nSelect a server:\n")
+        for i, server in enumerate(servers["data"]):
+            attrs = server["attributes"]
+            print(f"{i+1}. {attrs['name']} ({attrs['identifier']})")
+
+        try:
+            choice = int(input("\nEnter number: ")) - 1
+            server_id = servers["data"][choice]["attributes"]["identifier"]
+        except (ValueError, IndexError):
+            print("Invalid selection.")
+            return
+
+        ws_data = client.client.servers.get_websocket(server_id)
+        socket_url = ws_data["data"]["socket"]
+        token = ws_data["data"]["token"]
+
+        print("\nEstablishing connection with the console...\n")
+
+        import threading
+        import ssl
+
+        def on_open(ws):
+            ws.send(json.dumps({
+                "event": "auth",
+                "args": [token]
+            }))
+
+            def send_input():
+                while True:
+                    try:
+                        cmd = input()
+                        ws.send(json.dumps({
+                            "event": "send command",
+                            "args": [cmd]
+                        }))
+                    except Exception:
+                        break
+
+            threading.Thread(target=send_input, daemon=True).start()
+
+        def on_message(ws, message):
+            msg = json.loads(message)
+
+            if msg.get("event") == "auth success":
+                print("Connected to console.\n")
+
+            elif msg.get("event") == "auth error":
+                print("Authentication failed.")
+                ws.close()
+
+            elif msg.get("event") == "console output":
+                print("".join(msg["args"]), end="")
+
+        def on_error(ws, error):
+            print("Error:", error)
+
+        def on_close(ws, close_status_code, close_msg):
+            print("\nConnection closed.")
+
+        ws = websocket.WebSocketApp(
+            socket_url,
+            header=[
+                f"Origin: {PANEL_URL.rstrip('/')}",
+                f"Authorization: Bearer {token}"
+            ],
+            on_open=on_open,
+            on_message=on_message,
+            on_error=on_error,
+            on_close=on_close
+        )
+
+        ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+
+    except Exception as e:
+        print("Failed to connect to console.")
+        print(e)
 
 
 COMMANDS = {
@@ -156,7 +246,8 @@ COMMANDS = {
     "exit": cmd_exit,
     "listservers": cmd_list_servers,
     "srvutil": cmd_srvutil,
-    "whoami": cmd_whoami
+    "whoami": cmd_whoami,
+    "console": cmd_console
 }
 
 def main():
