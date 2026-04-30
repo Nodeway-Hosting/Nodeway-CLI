@@ -259,6 +259,29 @@ def cmd_console(data, args):
         print("Failed to connect to console.")
         print(e)
 
+def cmd_clean(data, args):
+    apikey = data.get("API_KEY")
+
+    if not apikey:
+        print("Not logged in.")
+        return
+
+    sure = input("Are you sure? (This will wipe all your login credentials) [y/n]: ").lower()
+
+    if sure != "y":
+        print("Cancelled.")
+        return
+
+    data["API_KEY"] = ""
+    data["logged_in"] = False
+    data["username"] = ""
+    data["email"] = ""
+
+    save_globals(data)
+
+    print("Credentials wiped.")
+
+
 COMMANDS = {
     "help": cmd_help,
     "version": cmd_version,
@@ -268,7 +291,8 @@ COMMANDS = {
     "srvutil": cmd_srvutil,
     "whoami": cmd_whoami,
     "console": cmd_console,
-    "servers": cmd_servers
+    "servers": cmd_servers,
+    "clean": cmd_clean
 }
 
 def main():
