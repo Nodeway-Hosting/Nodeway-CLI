@@ -22,15 +22,17 @@ def stats(args):
         print("Not logged in.")
         return
     
-    server_id = args[0] if args else input("Enter server ID: ").strip()
+    server_id = args[0] if args else select_server(client)
+    if not server_id:
+        return
     try:
         util = server_service.get_utilization(client, server_id)
-        attrs = util.get("attributes", util)
+        resources = util.get("resources", {})
         print("\nServer Utilization:")
-        print(f"CPU: {attrs.get('cpu_absolute', 0)}%")
-        print(f"RAM: {attrs.get('memory_bytes', 0) / 1024 / 1024:.2f} MB")
-        print(f"Disk: {attrs.get('disk_bytes', 0) / 1024 / 1024:.2f} MB")
-        print(f"State: {attrs.get('state', 'unknown')}")
+        print(f"CPU: {resources.get('cpu_absolute', 0)}%")
+        print(f"RAM: {resources.get('memory_bytes', 0) / 1024 / 1024:.2f} MB")
+        print(f"Disk: {resources.get('disk_bytes', 0) / 1024 / 1024:.2f} MB")
+        print(f"State: {util.get('current_state', 'unknown')}")
     except Exception as e:
         print(f"Error: {e}")
 

@@ -7,7 +7,7 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 DEFAULT_CONFIG = {
     "version": "1.0.0",
     "API_KEY": "",
-    "PANEL_URL": "https://game.serververs.com",
+    "PANEL_URL": "https://panel.nodeway.net",
     "logged_in": False,
     "username": "",
     "email": "",

@@ -16,9 +16,12 @@ def run(args):
         return
         
     try:
-        ws_data = server_service.get_websocket_details(client, server_id)
-        socket_url = ws_data["data"]["socket"]
+        server_info = client.client.servers.get_server(server_id)
+        full_uuid = server_info["uuid"]
+        
+        ws_data = server_service.get_websocket_details(client, full_uuid)
         token = ws_data["data"]["token"]
+        socket_url = ws_data["data"]["socket"] + "?token=" + token
         cfg = load_config()
 
         def on_open(ws):
@@ -38,7 +41,9 @@ def run(args):
             if event == "auth success":
                 print("Connected to console.\n")
             elif event == "console output":
-                print("".join(msg["args"]), end="")
+                output = "".join(msg["args"])
+                for line in output.splitlines():
+                    print(line)
 
         def on_error(ws, error):
             print(f"Error: {error}")
