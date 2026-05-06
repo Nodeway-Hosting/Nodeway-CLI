@@ -2,6 +2,8 @@ from core.client import get_client
 from core.utils import select_server
 from services import file_service
 from colorama import Fore, Style
+import os
+import platform
 
 def ls_cmd(client, server_id, args, current_path):
     file_service.list_files(
@@ -103,6 +105,36 @@ def edit_cmd(client, server_id, args, current_path):
         current_path
     )
 
+def help_cmd(client=None, server_id=None, args=None, current_path=None):
+    print(Fore.CYAN + """
+Available Commands:
+
+ls                     List files/directories
+cd <dir>               Change directory
+
+mkdir <folder>         Create folder
+rmdir <folder>         Remove folder
+rm <file>              Remove file
+
+touch <file>           Create empty file
+cat <file>             View file contents
+edit <file>            Edit file
+
+mv <old> <new>         Rename file/folder
+
+clear / cls            Clear terminal
+help                   Show this help menu
+exit                   Exit file manager
+""" + Style.RESET_ALL)
+    
+def clear_cmd(client=None, server_id=None, args=None, current_path=None):
+    system = platform.system()
+
+    if system == "Windows":
+        os.system("cls")
+    else:
+        os.system("clear")
+
 
 def start_file_manager(client, server_id):
     current_path = "/"
@@ -129,7 +161,10 @@ def start_file_manager(client, server_id):
         "cat": cat_cmd,
         "touch": touch_cmd,
         "mv": mv_cmd,
-        "edit": edit_cmd
+        "edit": edit_cmd,
+        "help": help_cmd,
+        "clear": clear_cmd,
+        "cls": clear_cmd
     }
 
     while running:
@@ -147,9 +182,6 @@ def start_file_manager(client, server_id):
             if cmd == "exit":
                 print("Exiting file manager...")
                 break
-
-            elif cmd == "pwd":
-                print(current_path)
 
             elif cmd in COMMANDS:
                 try:
