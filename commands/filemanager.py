@@ -95,6 +95,15 @@ def mv_cmd(client, server_id, args, current_path):
         current_path
     )
 
+def edit_cmd(client, server_id, args, current_path):
+    file_service.edit_file(
+        client,
+        server_id,
+        args,
+        current_path
+    )
+
+
 def start_file_manager(client, server_id):
     current_path = "/"
     running = True
@@ -119,7 +128,8 @@ def start_file_manager(client, server_id):
         "rm": rm_cmd,
         "cat": cat_cmd,
         "touch": touch_cmd,
-        "mv": mv_cmd
+        "mv": mv_cmd,
+        "edit": edit_cmd
     }
 
     while running:

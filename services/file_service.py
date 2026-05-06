@@ -1,4 +1,5 @@
-from colorama import Fore, Style
+from colorama import Fore, Back, Style
+import subprocess, os, platform
 
 def list_files(client, server_id, args, current_path):
     target_path = args[0] if args else current_path
@@ -108,3 +109,60 @@ def mv_file(client, server_id, args, current_path):
     )
 
     print(Fore.GREEN + f"Renamed '{source}' -> '{destination}'" + Style.RESET_ALL)
+
+def edit_file(client, server_id, args, current_path):
+    if not args:
+        print(Fore.RED + "Usage: edit <file>" + Style.RESET_ALL)
+        return
+    file_name = args[0]
+    if current_path == "/":
+        full_path = f"/{file_name}"
+    else:
+        full_path = f"{current_path}/{file_name}"
+
+    system = platform.system()
+
+    temp_path = f"temp_{file_name}.txt"
+
+    file_contents = client.client.servers.files.get_file_contents(
+        server_id,
+        full_path,
+        False
+    )
+
+    print(Back.GREEN + f"Successfully copied file contents" + Style.RESET_ALL)
+
+    with open(temp_path, "w") as f:
+        f.write(file_contents.text)
+    
+    if system == "Windows":
+        try:
+            subprocess.run(["notepad.exe", temp_path])
+        except Exception as e:
+            print(f"Failed to open: {e}")
+    elif system == "Darwin":
+        try:
+            subprocess.run(["open", "-e", temp_path])
+        except Exception as e:
+            print(f"Failed to open: {e}")
+    elif system == "Linux":
+        try:
+            subprocess.run(["nano", temp_path])
+        except Exception as e:
+            print(f"Failed to open: {e}")
+
+    print(Back.BLUE + f"Successfully opened Notepad" + Style.RESET_ALL)
+
+    with open(temp_path, "r") as f:
+        updated_contents = f.read()
+
+    client.client.servers.files.write_file(
+        server_id,
+        full_path,
+        updated_contents
+    )
+
+    os.remove(temp_path)
+    print(Back.RED + f"Successfully removed tempfile" + Style.RESET_ALL)
+
+    print(Fore.GREEN + f"Saved changes to {file_name}" + Style.RESET_ALL)
