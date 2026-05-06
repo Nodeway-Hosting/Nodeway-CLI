@@ -63,6 +63,14 @@ def rmdir_cmd(client, server_id, args, current_path):
         current_path
     )
 
+def cat_cmd(client, server_id, args, current_path):
+    file_service.concantate(
+        client,
+        server_id,
+        args,
+        current_path
+    )
+
 def start_file_manager(client, server_id):
     current_path = "/"
     running = True
@@ -83,7 +91,8 @@ def start_file_manager(client, server_id):
         "ls": ls_cmd,
         "cd": cd_cmd,
         "mkdir": mkdir_cmd,
-        "rmdir": rmdir_cmd
+        "rmdir": rmdir_cmd,
+        "cat": cat_cmd
     }
 
     while running:

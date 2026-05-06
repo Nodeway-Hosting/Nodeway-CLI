@@ -44,3 +44,20 @@ def remove_directory(client, server_id, args, current_path):
         [full_path]
     )
     print(Fore.RED + f"Deleted target: {target_name}" + Style.RESET_ALL)
+
+def concantate(client, server_id, args, current_path):
+    if not args:
+        print(Fore.RED + "Usage: cat <file>" + Style.RESET_ALL)
+        return
+    file_name = args[0]
+    if current_path == "/":
+        full_path = f"/{file_name}"
+    else:
+        full_path = f"{current_path}/{file_name}"
+
+    file = client.client.servers.files.get_file_contents(
+        server_id,
+        full_path,
+        False
+    )
+    print(Fore.BLUE + file.text + Style.RESET_ALL)
