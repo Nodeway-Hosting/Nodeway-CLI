@@ -63,8 +63,24 @@ def rmdir_cmd(client, server_id, args, current_path):
         current_path
     )
 
+def rm_cmd(client, server_id, args, current_path):
+    file_service.remove_file(
+        client,
+        server_id,
+        args,
+        current_path
+    )
+
 def cat_cmd(client, server_id, args, current_path):
     file_service.concantate(
+        client,
+        server_id,
+        args,
+        current_path
+    )
+
+def touch_cmd(client, server_id, args, current_path):
+    file_service.touch(
         client,
         server_id,
         args,
@@ -92,7 +108,9 @@ def start_file_manager(client, server_id):
         "cd": cd_cmd,
         "mkdir": mkdir_cmd,
         "rmdir": rmdir_cmd,
-        "cat": cat_cmd
+        "rm": rm_cmd,
+        "cat": cat_cmd,
+        "touch": touch_cmd
     }
 
     while running:
@@ -137,6 +155,7 @@ def start_file_manager(client, server_id):
 
         except Exception as e:
             print(f"Shell error: {e}")
+            
 
             
 def handle(args):

@@ -45,6 +45,19 @@ def remove_directory(client, server_id, args, current_path):
     )
     print(Fore.RED + f"Deleted target: {target_name}" + Style.RESET_ALL)
 
+def remove_file(client, server_id, args, current_path):
+    if not args:
+        print(Fore.RED + "Usage: rm <folder>" + Style.RESET_ALL)
+        return
+    target_name = args[0]
+    full_path = f"{current_path}/{target_name}"
+
+    target = client.client.servers.files.delete_files(
+        server_id,
+        [full_path]
+    )
+    print(Fore.RED + f"Deleted target: {target_name}" + Style.RESET_ALL)
+
 def concantate(client, server_id, args, current_path):
     if not args:
         print(Fore.RED + "Usage: cat <file>" + Style.RESET_ALL)
@@ -61,3 +74,20 @@ def concantate(client, server_id, args, current_path):
         False
     )
     print(Fore.BLUE + file.text + Style.RESET_ALL)
+
+def touch(client, server_id, args, current_path):
+    if not args:
+        print(Fore.RED + "Usage: touch <file>" + Style.RESET_ALL)
+        return
+    file_name = args[0]
+    if current_path == "/":
+        full_path = f"/{file_name}"
+    else:
+        full_path = f"{current_path}/{file_name}"
+
+    file = client.client.servers.files.write_file(
+        server_id,
+        full_path,
+        None
+    )
+    print(Fore.GREEN + f"Created file: {file_name}" + Style.RESET_ALL)
