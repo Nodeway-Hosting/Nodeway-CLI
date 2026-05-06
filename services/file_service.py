@@ -91,3 +91,20 @@ def touch(client, server_id, args, current_path):
         None
     )
     print(Fore.GREEN + f"Created file: {file_name}" + Style.RESET_ALL)
+
+def mv_file(client, server_id, args, current_path):
+    if len(args) < 2:
+        print("Usage: mv <source> <destination>")
+        return
+
+    source = args[0]
+    destination = args[1]
+
+    client.client.servers.files.rename_file(
+        server_id,
+        source,
+        destination,
+        current_path
+    )
+
+    print(Fore.GREEN + f"Renamed '{source}' -> '{destination}'" + Style.RESET_ALL)

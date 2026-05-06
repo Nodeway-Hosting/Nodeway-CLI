@@ -87,6 +87,14 @@ def touch_cmd(client, server_id, args, current_path):
         current_path
     )
 
+def mv_cmd(client, server_id, args, current_path):
+    file_service.mv_file(
+        client,
+        server_id,
+        args,
+        current_path
+    )
+
 def start_file_manager(client, server_id):
     current_path = "/"
     running = True
@@ -110,7 +118,8 @@ def start_file_manager(client, server_id):
         "rmdir": rmdir_cmd,
         "rm": rm_cmd,
         "cat": cat_cmd,
-        "touch": touch_cmd
+        "touch": touch_cmd,
+        "mv": mv_cmd
     }
 
     while running:
