@@ -1,24 +1,18 @@
 from core.client import get_client
 from core.utils import select_server
-from services import server_service, file_service
+from services import file_service
+from colorama import Fore, Style
 
 def ls_cmd(client, server_id, args, current_path):
-    client = get_client()
-    if not client:
-        print("Not logged in.")
-        return
-    try:
-        file_service.list_files(
-            client,
-            server_id,
-            args,
-            current_path
-        )
-    except Exception as e:
-        print(f"Error: {e}")
+    file_service.list_files(
+        client,
+        server_id,
+        args,
+        current_path
+    )
+
 
 def cd_cmd(client, server_id, args, current_path):
-    # No target provided
     if not args:
         return current_path
 
@@ -42,15 +36,32 @@ def cd_cmd(client, server_id, args, current_path):
 
         return "/".join(parts)
 
-    # Absolute path
+    # Absolute path thingy
     if target.startswith("/"):
         return target
 
-    # Relative path
+    # Relative path thingy
     if current_path == "/":
         return f"/{target}"
 
     return f"{current_path}/{target}"
+
+
+def mkdir_cmd(client, server_id, args, current_path):
+    file_service.make_directory(
+        client,
+        server_id,
+        args,
+        current_path
+    )
+
+def rmdir_cmd(client, server_id, args, current_path):
+    file_service.remove_directory(
+        client,
+        server_id,
+        args,
+        current_path
+    )
 
 def start_file_manager(client, server_id):
     current_path = "/"
@@ -70,7 +81,9 @@ def start_file_manager(client, server_id):
 
     COMMANDS = {
         "ls": ls_cmd,
-        "cd": cd_cmd
+        "cd": cd_cmd,
+        "mkdir": mkdir_cmd,
+        "rmdir": rmdir_cmd
     }
 
     while running:
@@ -121,7 +134,7 @@ def handle(args):
     client = get_client()
 
     if not client:
-        print("Not logged in.")
+        print(Fore.RED + "Not logged in." + Style.RESET_ALL)
         return
 
     server_id = args[0] if args else select_server(client)
