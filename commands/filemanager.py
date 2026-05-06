@@ -3,12 +3,54 @@ from core.utils import select_server
 from services import server_service, file_service
 
 def ls_cmd(client, server_id, args, current_path):
-    file_service.list_files(
-        client,
-        server_id,
-        args,
-        current_path
-    )
+    client = get_client()
+    if not client:
+        print("Not logged in.")
+        return
+    try:
+        file_service.list_files(
+            client,
+            server_id,
+            args,
+            current_path
+        )
+    except Exception as e:
+        print(f"Error: {e}")
+
+def cd_cmd(client, server_id, args, current_path):
+    # No target provided
+    if not args:
+        return current_path
+
+    target = args[0]
+
+    # Go to root
+    if target == "/":
+        return "/"
+
+    # Go back one directory
+    if target == "..":
+        if current_path == "/":
+            return "/"
+
+        parts = current_path.rstrip("/").split("/")
+
+        parts.pop()
+
+        if not parts or parts == [""]:
+            return "/"
+
+        return "/".join(parts)
+
+    # Absolute path
+    if target.startswith("/"):
+        return target
+
+    # Relative path
+    if current_path == "/":
+        return f"/{target}"
+
+    return f"{current_path}/{target}"
 
 def start_file_manager(client, server_id):
     current_path = "/"
@@ -27,7 +69,8 @@ def start_file_manager(client, server_id):
         return
 
     COMMANDS = {
-        "ls": ls_cmd
+        "ls": ls_cmd,
+        "cd": cd_cmd
     }
 
     while running:
