@@ -1,7 +1,7 @@
 import sys
 from config import load_config
 from core import utils
-from commands import auth, servers, console, files
+from commands import auth, servers, console, filemanager
 
 def cmd_help(args):
     print("""
@@ -29,7 +29,8 @@ COMMANDS = {
     "whoami": auth.whoami,
     "servers": servers.handle,
     "console": console.run,
-    "files": files.handle,
+    "files": filemanager.handle,
+    "fm": filemanager.handle,
     "exit": lambda _: sys.exit()
 }
 
