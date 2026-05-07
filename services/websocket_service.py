@@ -2,6 +2,7 @@ import websocket
 import json
 import ssl
 
+# Setup and maintain the websocket connection for the console
 def connect_console(socket_url, token, panel_url, on_message=None, on_open=None, on_error=None, on_close=None):
     try:
         ws = websocket.create_connection(
@@ -14,9 +15,11 @@ def connect_console(socket_url, token, panel_url, on_message=None, on_open=None,
             }
         )
         
+        # Connection established, call the open callback
         if on_open:
             on_open(ws)
             
+        # Keep listening for messages until the connection closes
         while True:
             try:
                 message = ws.recv()

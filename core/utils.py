@@ -1,5 +1,6 @@
 import sys
 
+# Print the Nodeway CLI logo
 def show_banner():
     print(r"""
  /$$   /$$                 /$$                                                    /$$$$$$  /$$       /$$$$$$
@@ -16,6 +17,7 @@ def show_banner():
     """)
     print("Run 'help' to see available commands")
 
+# Helper to let the user pick a server from a list
 def select_server(client):
     try:
         servers = client.client.servers.list_servers()
@@ -28,6 +30,7 @@ def select_server(client):
             attrs = server["attributes"]
             print(f"{i+1}. {attrs['name']} ({attrs['identifier']})")
 
+        # Get the index from user input
         choice = int(input("\nEnter number: ")) - 1
         if 0 <= choice < len(servers["data"]):
             return servers["data"][choice]["attributes"]["identifier"]

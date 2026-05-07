@@ -5,6 +5,7 @@ from core.utils import select_server
 from services import server_service, websocket_service
 from config import load_config
 
+# Main entry point for the console command
 def run(args):
     client = get_client()
     if not client:
@@ -24,6 +25,7 @@ def run(args):
         socket_url = ws_data["data"]["socket"] + "?token=" + token
         cfg = load_config()
 
+        # Callback for when the connection starts
         def on_open(ws):
             ws.send(json.dumps({"event": "auth", "args": [token]}))
             def send_input():
@@ -35,6 +37,7 @@ def run(args):
                         break
             threading.Thread(target=send_input, daemon=True).start()
 
+        # Callback for incoming console logs
         def on_message(ws, message):
             msg = json.loads(message)
             event = msg.get("event")
@@ -51,6 +54,7 @@ def run(args):
         def on_close(ws, code, msg):
             print("\nConnection closed.")
 
+        # Start the websocket connection
         print("\nEstablishing connection...\n")
         websocket_service.connect_console(
             socket_url, token, cfg["PANEL_URL"],

@@ -2,6 +2,7 @@ import getpass
 from config import load_config, save_config
 from core.client import get_client
 
+# Prompt for API key and verify connection
 def login(args):
     apikey = getpass.getpass("Enter your client API key: ")
     cfg = load_config()
@@ -12,6 +13,7 @@ def login(args):
         account = client.client.account.get_account()
         username = account["attributes"]["username"]
         
+        # If we got here, the key is valid
         cfg["API_KEY"] = apikey
         cfg["logged_in"] = True
         cfg["username"] = username
@@ -22,6 +24,7 @@ def login(args):
     except Exception as e:
         print(f"Login failed: {e}")
 
+# Log out and clear stored credentials
 def logout(args):
     sure = input("Are you sure? (This will wipe your credentials) [y/n]: ").lower()
     if sure == "y":
@@ -35,6 +38,7 @@ def logout(args):
     else:
         print("Cancelled.")
 
+# Show currently logged in user info
 def whoami(args):
     cfg = load_config()
     if not cfg.get("logged_in"):

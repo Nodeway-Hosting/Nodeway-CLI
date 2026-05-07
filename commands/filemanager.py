@@ -5,6 +5,7 @@ from colorama import Fore, Style
 import os
 import platform
 
+# List files in the current directory
 def ls_cmd(client, server_id, args, current_path):
     file_service.list_files(
         client,
@@ -14,6 +15,7 @@ def ls_cmd(client, server_id, args, current_path):
     )
 
 
+# Change the current working directory
 def cd_cmd(client, server_id, args, current_path):
     if not args:
         return current_path
@@ -136,6 +138,8 @@ def clear_cmd(client=None, server_id=None, args=None, current_path=None):
         os.system("clear")
 
 
+
+# Main loop for the file manager "shell"
 def start_file_manager(client, server_id):
     current_path = "/"
     running = True
@@ -209,6 +213,8 @@ def start_file_manager(client, server_id):
             
 
             
+
+# Command handler for 'files' or 'fm'
 def handle(args):
     client = get_client()
 

@@ -1,9 +1,11 @@
 import json
 import os
 
+# Where to store settings
 CONFIG_DIR = os.path.expanduser("~/.nodeway")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 
+# Basic settings template
 DEFAULT_CONFIG = {
     "version": "1.0.0",
     "API_KEY": "",
@@ -14,6 +16,7 @@ DEFAULT_CONFIG = {
     "default_server": ""
 }
 
+# Read config from file or use defaults
 def load_config():
     if not os.path.exists(CONFIG_FILE):
         return DEFAULT_CONFIG
@@ -24,6 +27,7 @@ def load_config():
     except (FileNotFoundError, json.JSONDecodeError):
         return DEFAULT_CONFIG
 
+# Write config back to the file
 def save_config(data):
     if not os.path.exists(CONFIG_DIR):
         os.makedirs(CONFIG_DIR)

@@ -1,6 +1,7 @@
 from colorama import Fore, Back, Style
 import subprocess, os, platform
 
+# Fetch and print file list for a server
 def list_files(client, server_id, args, current_path):
     target_path = args[0] if args else current_path
 
@@ -19,6 +20,7 @@ def list_files(client, server_id, args, current_path):
 
         print(Fore.BLUE + f"{prefix:<8} {name}" + Style.RESET_ALL)
 
+# Create a new folder on the server
 def make_directory(client, server_id, args, current_path):
     if not args:
         print(Fore.RED + "Usage: mkdir <folder>" + Style.RESET_ALL)
@@ -46,6 +48,7 @@ def remove_directory(client, server_id, args, current_path):
     )
     print(Fore.RED + f"Deleted target: {target_name}" + Style.RESET_ALL)
 
+# Delete a file from the server
 def remove_file(client, server_id, args, current_path):
     if not args:
         print(Fore.RED + "Usage: rm <folder>" + Style.RESET_ALL)
@@ -59,6 +62,7 @@ def remove_file(client, server_id, args, current_path):
     )
     print(Fore.RED + f"Deleted target: {target_name}" + Style.RESET_ALL)
 
+# View file content (cat)
 def concantate(client, server_id, args, current_path):
     if not args:
         print(Fore.RED + "Usage: cat <file>" + Style.RESET_ALL)
@@ -110,6 +114,7 @@ def mv_file(client, server_id, args, current_path):
 
     print(Fore.GREEN + f"Renamed '{source}' -> '{destination}'" + Style.RESET_ALL)
 
+# Open a local editor to modify a remote file
 def edit_file(client, server_id, args, current_path):
     if not args:
         print(Fore.RED + "Usage: edit <file>" + Style.RESET_ALL)

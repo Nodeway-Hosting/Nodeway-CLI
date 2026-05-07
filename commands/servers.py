@@ -2,6 +2,7 @@ from core.client import get_client
 from core.utils import select_server
 from services import server_service
 
+# List all servers the user has access to
 def list_servers():
     client = get_client()
     if not client:
@@ -16,6 +17,7 @@ def list_servers():
     except Exception as e:
         print(f"Error: {e}")
 
+# Show resource usage for a server
 def stats(args):
     client = get_client()
     if not client:
@@ -36,6 +38,7 @@ def stats(args):
     except Exception as e:
         print(f"Error: {e}")
 
+# Handle start, stop, restart
 def power_action(action, args):
     client = get_client()
     if not client:
@@ -52,6 +55,7 @@ def power_action(action, args):
     except Exception as e:
         print(f"Error: {e}")
 
+# Entry point for 'servers' command
 def handle(args):
     if not args:
         print("Usage: servers <list|start|stop|restart|stats>")
