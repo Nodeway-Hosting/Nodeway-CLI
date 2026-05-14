@@ -1,46 +1,58 @@
-import getpass
 from config import load_config, save_config
 from core.client import get_client
+from core import ui
+
 
 def login(args):
-    apikey = getpass.getpass("Enter your client API key: ")
+    apikey = ui.password_prompt("Enter your client API key")
+    if not apikey:
+        ui.dim("Cancelled.")
+        return
+
     cfg = load_config()
-    
-    try:
-        from pydactyl import PterodactylClient
-        client = PterodactylClient(cfg["PANEL_URL"], apikey)
-        account = client.client.account.get_account()
-        username = account["attributes"]["username"]
-        
-        cfg["API_KEY"] = apikey
-        cfg["logged_in"] = True
-        cfg["username"] = username
-        cfg["email"] = account["attributes"]["email"]
-        
-        save_config(cfg)
-        print(f"Logged in successfully as {username}!")
-    except Exception as e:
-        print(f"Login failed: {e}")
+
+    with ui.Spinner("Authenticating..."):
+        try:
+            from pydactyl import PterodactylClient
+            client = PterodactylClient(cfg["PANEL_URL"], apikey)
+            account = client.client.account.get_account()
+            username = account["attributes"]["username"]
+
+            cfg["API_KEY"] = apikey
+            cfg["logged_in"] = True
+            cfg["username"] = username
+            cfg["email"] = account["attributes"]["email"]
+
+            save_config(cfg)
+        except Exception as e:
+            ui.error(f"Login failed: {e}")
+            return
+
+    ui.blank()
+    ui.success(f"Logged in as {ui.bold(username)}")
+
 
 def logout(args):
-    sure = input("Are you sure? (This will wipe your credentials) [y/n]: ").lower()
-    if sure == "y":
-        cfg = load_config()
-        cfg["API_KEY"] = ""
-        cfg["logged_in"] = False
-        cfg["username"] = ""
-        cfg["email"] = ""
-        save_config(cfg)
-        print("Credentials wiped.")
-    else:
-        print("Cancelled.")
+    if not ui.confirm_prompt("This will wipe your credentials. Continue?"):
+        ui.dim("Cancelled.")
+        return
+
+    cfg = load_config()
+    cfg["API_KEY"] = ""
+    cfg["logged_in"] = False
+    cfg["username"] = ""
+    cfg["email"] = ""
+    save_config(cfg)
+    ui.success("Credentials wiped.")
+
 
 def whoami(args):
     cfg = load_config()
     if not cfg.get("logged_in"):
-        print("Not logged in.")
+        ui.warn("Not logged in.")
         return
-        
-    print("WHOAMI:")
-    print(f"Username: {cfg.get('username')}")
-    print(f"Email: {cfg.get('email')}")
+
+    ui.panel("Account", [
+        f"{ui.C.DIM}Username:{ui.C.RESET}  {ui.C.BRIGHT_WHITE}{cfg.get('username')}{ui.C.RESET}",
+        f"{ui.C.DIM}Email:{ui.C.RESET}     {ui.C.BRIGHT_WHITE}{cfg.get('email')}{ui.C.RESET}",
+    ])

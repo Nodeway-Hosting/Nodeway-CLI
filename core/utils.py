@@ -1,38 +1,45 @@
 import sys
+from config import load_config
+from core import ui
+
 
 def show_banner():
-    print(r"""
- /$$   /$$                 /$$                                                    /$$$$$$  /$$       /$$$$$$
-| $$$ | $$                | $$                                                   /$$__  $$| $$      |_  $$_/
-| $$$$| $$  /$$$$$$   /$$$$$$$  /$$$$$$  /$$  /$$  /$$  /$$$$$$  /$$   /$$      | $$  \__/| $$        | $$  
-| $$ $$ $$ /$$__  $$ /$$__  $$ /$$__  $$| $$ | $$ | $$ |____  $$| $$  | $$      | $$      | $$        | $$  
-| $$  $$$$| $$  \ $$| $$  | $$| $$$$$$$$| $$ | $$ | $$  /$$$$$$$| $$  | $$      | $$      | $$        | $$  
-| $$\  $$$| $$  | $$| $$  | $$| $$_____/| $$ | $$ | $$ /$$__  $$| $$  | $$      | $$    $$| $$        | $$  
-| $$ \  $$|  $$$$$$/|  $$$$$$$|  $$$$$$$|  $$$$$/$$$$/|  $$$$$$$|  $$$$$$$      |  $$$$$$/| $$$$$$$$ /$$$$$$
-|__/  \__/ \______/  \_______/ \_______/ \_____/\___/  \_______/ \____  $$       \______/ |________/|______/
-                                                                 /$$  | $$                                  
-                                                                |  $$$$$$/                                  
-                                                                 \______/                                   
-    """)
-    print("Run 'help' to see available commands")
+    """Show the startup banner with version and user info."""
+    cfg = load_config()
+    version = cfg.get("version", "1.0.0")
+    username = cfg.get("username", "") if cfg.get("logged_in") else None
+    ui.render_banner(version=version, username=username)
+
 
 def select_server(client):
+    """Interactive arrow-key server selector using the UI toolkit."""
     try:
         servers = client.client.servers.list_servers()
         if not servers["data"]:
-            print("No servers found.")
+            ui.warn("No servers found.")
             return None
 
-        print("\nSelect a server:\n")
-        for i, server in enumerate(servers["data"]):
-            attrs = server["attributes"]
-            print(f"{i+1}. {attrs['name']} ({attrs['identifier']})")
+        # Build options list
+        server_data = servers["data"]
 
-        choice = int(input("\nEnter number: ")) - 1
-        if 0 <= choice < len(servers["data"]):
-            return servers["data"][choice]["attributes"]["identifier"]
-        print("Invalid selection.")
-        return None
+        def display_server(server, idx):
+            attrs = server["attributes"]
+            name = attrs["name"]
+            identifier = attrs["identifier"]
+            return f"{name}  {ui.C.DIM}({identifier}){ui.C.RESET}"
+
+        selected = ui.select_menu(
+            "Select a server:",
+            server_data,
+            display_fn=display_server
+        )
+
+        if selected is None:
+            ui.dim("Cancelled.")
+            return None
+
+        return selected["attributes"]["identifier"]
+
     except Exception as e:
-        print(f"Error selecting server: {e}")
+        ui.error(f"Error selecting server: {e}")
         return None
