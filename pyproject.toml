@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Nodeway Team", email = "hello@nodeway.net"}
+    {name = "Nodeway Team", email = "team@nodeway.net"}
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
