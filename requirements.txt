@@ -1,3 +1,0 @@
-pydactyl
-websocket-client
-prompt-toolkit

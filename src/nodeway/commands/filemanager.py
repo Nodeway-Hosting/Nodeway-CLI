@@ -1,7 +1,7 @@
-from core.client import get_client
-from core.utils import select_server
-from core import ui
-from services import file_service
+from nodeway.api.client import get_client
+from nodeway.ui.utils import select_server
+from nodeway.ui import toolkit as ui
+from nodeway.services import file_service
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import InMemoryHistory

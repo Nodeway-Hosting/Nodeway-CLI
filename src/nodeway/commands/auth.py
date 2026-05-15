@@ -1,6 +1,6 @@
-from config import load_config, save_config
-from core.client import get_client
-from core import ui
+from nodeway.core.config import load_config, save_config
+from nodeway.api.client import get_client
+from nodeway.ui import toolkit as ui
 
 
 def login(args):

@@ -16,7 +16,7 @@ from prompt_toolkit.formatted_text import ANSI
 from prompt_toolkit.shortcuts import clear
 
 
-# ─── Enable ANSI escape codes on Windows ─────────────────────────────
+# Enable ANSI escape codes on Windows
 # Without this, colors and box-drawing chars show as garbage on cmd/powershell
 
 def _enable_windows_ansi():
@@ -40,7 +40,7 @@ _enable_windows_ansi()
 
 
 
-# ─── ANSI color codes ────────────────────────────────────────────────
+# ANSI color codes
 
 class Colors:
     RESET    = "\033[0m"
@@ -80,7 +80,7 @@ class Colors:
 C = Colors
 
 
-# ─── Terminal width helper ────────────────────────────────────────────
+# Terminal width helper
 
 def term_width():
     """Get terminal width, default 80 if detection fails."""
@@ -90,27 +90,27 @@ def term_width():
         return 80
 
 
-# ─── Styled print ────────────────────────────────────────────────────
+# Styled print
 
 def success(msg):
     """Print a success message with a green checkmark."""
-    print(f"  {C.BRIGHT_GREEN}✓{C.RESET} {msg}")
+    _safe_print(f"  {C.BRIGHT_GREEN}✓{C.RESET} {msg}")
 
 def error(msg):
     """Print an error message with a red X."""
-    print(f"  {C.BRIGHT_RED}✗{C.RESET} {msg}")
+    _safe_print(f"  {C.BRIGHT_RED}✗{C.RESET} {msg}")
 
 def info(msg):
     """Print an info message with a cyan dot."""
-    print(f"  {C.BRIGHT_CYAN}●{C.RESET} {msg}")
+    _safe_print(f"  {C.BRIGHT_CYAN}●{C.RESET} {msg}")
 
 def warn(msg):
     """Print a warning message with a yellow triangle."""
-    print(f"  {C.BRIGHT_YELLOW}⚠{C.RESET} {msg}")
+    _safe_print(f"  {C.BRIGHT_YELLOW}⚠{C.RESET} {msg}")
 
 def dim(msg):
     """Print dimmed/secondary text."""
-    print(f"  {C.DIM}{msg}{C.RESET}")
+    _safe_print(f"  {C.DIM}{msg}{C.RESET}")
 
 def muted(msg):
     """Return a dimmed string (doesn't print)."""
@@ -125,19 +125,19 @@ def bold(msg):
     return f"{C.BOLD}{msg}{C.RESET}"
 
 
-# ─── Dividers ─────────────────────────────────────────────────────────
+# Dividers
 
 def divider(char="─", color=C.BRIGHT_BLACK):
     """Print a horizontal divider line."""
     w = term_width() - 4
-    print(f"  {color}{char * w}{C.RESET}")
+    _safe_print(f"  {color}{char * w}{C.RESET}")
 
 def blank():
     """Print a blank line."""
-    print()
+    _safe_print()
 
 
-# ─── Panels (bordered output blocks) ─────────────────────────────────
+# Panels (bordered output blocks)
 
 def panel(title, lines, color=C.BRIGHT_CYAN, width=None):
     """
@@ -153,16 +153,16 @@ def panel(title, lines, color=C.BRIGHT_CYAN, width=None):
     inner = w - 4  # padding inside the box
 
     # Top border
-    print(f"  {color}╭{'─' * (w - 2)}╮{C.RESET}")
+    _safe_print(f"  {color}╭{'─' * (w - 2)}╮{C.RESET}")
 
     # Title
     padded_title = f" {title} "
     title_len = len(title) + 2
     remaining = w - 2 - title_len
-    print(f"  {color}│{C.RESET}{C.BOLD}{padded_title}{C.RESET}{' ' * remaining}{color}│{C.RESET}")
+    _safe_print(f"  {color}│{C.RESET}{C.BOLD}{padded_title}{C.RESET}{' ' * remaining}{color}│{C.RESET}")
 
     # Separator under title
-    print(f"  {color}├{'─' * (w - 2)}┤{C.RESET}")
+    _safe_print(f"  {color}├{'─' * (w - 2)}┤{C.RESET}")
 
     # Content lines
     for line in lines:
@@ -171,10 +171,10 @@ def panel(title, lines, color=C.BRIGHT_CYAN, width=None):
         pad = inner - len(stripped)
         if pad < 0:
             pad = 0
-        print(f"  {color}│{C.RESET}  {line}{' ' * pad}{color}│{C.RESET}")
+        _safe_print(f"  {color}│{C.RESET}  {line}{' ' * pad}{color}│{C.RESET}")
 
     # Bottom border
-    print(f"  {color}╰{'─' * (w - 2)}╯{C.RESET}")
+    _safe_print(f"  {color}╰{'─' * (w - 2)}╯{C.RESET}")
 
 
 def _strip_ansi(s):
@@ -183,7 +183,29 @@ def _strip_ansi(s):
     return re.sub(r'\033\[[0-9;]*m', '', s)
 
 
-# ─── Tables ───────────────────────────────────────────────────────────
+def _safe_print(s=""):
+    """Print string safely, falling back to ASCII if encoding fails."""
+    try:
+        sys.stdout.write(s + "\n")
+        sys.stdout.flush()
+    except UnicodeEncodeError:
+        # Fallback for non-UTF8 terminals (like some Windows cmd/powershell setups)
+        # Replace common box-drawing chars with ASCII equivalents
+        replacements = {
+            "╭": "+", "╮": "+", "╰": "+", "╯": "+", "─": "-", "│": "|",
+            "├": "+", "┤": "+", "┬": "+", "┴": "+", "┼": "+", "❯": ">",
+            "●": "*", "✓": "[OK]", "✗": "[ERR]", "⚠": "[!]", "⚡": "[!]",
+            "🔑": "K", "📄": "F", "📁": "D", "🎉": "[YAY]", "✻": "*",
+            "█": "#", "╔": "+", "╗": "+", "╚": "+", "╝": "+", "═": "=",
+        }
+        for char, sub in replacements.items():
+            s = s.replace(char, sub)
+        # Encode with 'replace' or 'ignore' as a last resort
+        sys.stdout.write(s.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding) + "\n")
+        sys.stdout.flush()
+
+
+# Table rendering
 
 def render_table(headers, rows, color=C.BRIGHT_CYAN):
     """
@@ -225,15 +247,15 @@ def render_table(headers, rows, color=C.BRIGHT_CYAN):
                 parts.append(f" {cell}{' ' * pad}")
         return f"  {color}│{C.RESET}" + f"{color}│{C.RESET}".join(parts) + f"{color}│{C.RESET}"
 
-    print(top)
-    print(format_row(headers, is_header=True))
-    print(mid)
+    _safe_print(top)
+    _safe_print(format_row(headers, is_header=True))
+    _safe_print(mid)
     for row in rows:
-        print(format_row(row))
-    print(bottom)
+        _safe_print(format_row(row))
+    _safe_print(bottom)
 
 
-# ─── Spinner ──────────────────────────────────────────────────────────
+# Spinner
 
 class Spinner:
     """
@@ -272,7 +294,7 @@ class Spinner:
             self._thread.join(timeout=1)
 
 
-# ─── Interactive prompts ──────────────────────────────────────────────
+# Interactive prompts
 
 def confirm_prompt(message, default=False):
     """
@@ -295,7 +317,7 @@ def confirm_prompt(message, default=False):
             return default
         return answer in ("y", "yes")
     except (EOFError, KeyboardInterrupt):
-        print()
+        _safe_print()
         return False
 
 
@@ -307,7 +329,7 @@ def password_prompt(message="Password"):
             is_password=True
         )
     except (EOFError, KeyboardInterrupt):
-        print()
+        _safe_print()
         return None
 
 
@@ -335,7 +357,7 @@ def select_menu(title, options, display_fn=None):
     sys.stdout.flush()
 
     try:
-        print(f"\n  {C.BOLD}{title}{C.RESET}\n")
+        _safe_print(f"\n  {C.BOLD}{title}{C.RESET}\n")
         start_line = None
 
         while True:
@@ -433,7 +455,7 @@ def _read_key():
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 
-# ─── Banner ───────────────────────────────────────────────────────────
+# Banner
 
 # Modern blue color for the ASCII art
 _BRICK = "\033[38;5;75m"
@@ -449,17 +471,17 @@ def render_banner(version="1.0.0", username=None):
     """
     blank()
 
-    # ── Welcome box ──
+    # Welcome box
     welcome_text = f" ✻ Welcome to {C.BOLD}Nodeway CLI{C.RESET} v{version}! "
     welcome_stripped = _strip_ansi(welcome_text)
     box_w = len(welcome_stripped) + 2
-    print(f"  {C.BRIGHT_BLACK}╭{'─' * box_w}╮{C.RESET}")
-    print(f"  {C.BRIGHT_BLACK}│{C.RESET}{welcome_text} {C.BRIGHT_BLACK}│{C.RESET}")
-    print(f"  {C.BRIGHT_BLACK}╰{'─' * box_w}╯{C.RESET}")
+    _safe_print(f"  {C.BRIGHT_BLACK}╭{'─' * box_w}╮{C.RESET}")
+    _safe_print(f"  {C.BRIGHT_BLACK}│{C.RESET}{welcome_text} {C.BRIGHT_BLACK}│{C.RESET}")
+    _safe_print(f"  {C.BRIGHT_BLACK}╰{'─' * box_w}╯{C.RESET}")
 
     blank()
 
-    # ── Big ASCII art — chunky brick style ──
+    # Big ASCII art
     art = [
         " ███╗   ██╗  ██████╗  ██████╗  ███████╗ ██╗    ██╗  █████╗  ██╗   ██╗",
         " ████╗  ██║ ██╔═══██╗ ██╔══██╗ ██╔════╝ ██║    ██║ ██╔══██╗ ╚██╗ ██╔╝",
@@ -470,20 +492,20 @@ def render_banner(version="1.0.0", username=None):
     ]
 
     for line in art:
-        print(f"  {_BRICK}{line}{C.RESET}")
+        _safe_print(f"  {_BRICK}{line}{C.RESET}")
 
     blank()
 
-    # ── Login status line ──
+    # Login status line
     if username:
-        print(f"  {C.BRIGHT_GREEN}🎉{C.RESET} Logged in as {C.BOLD}{C.BRIGHT_WHITE}{username}{C.RESET}. Type {C.BOLD}help{C.RESET} to get started.")
+        _safe_print(f"  {C.BRIGHT_GREEN}🎉{C.RESET} Logged in as {C.BOLD}{C.BRIGHT_WHITE}{username}{C.RESET}. Type {C.BOLD}help{C.RESET} to get started.")
     else:
-        print(f"  {C.BRIGHT_YELLOW}⚡{C.RESET} Not logged in. Type {C.BOLD}login{C.RESET} to authenticate.")
+        _safe_print(f"  {C.BRIGHT_YELLOW}⚡{C.RESET} Not logged in. Type {C.BOLD}login{C.RESET} to authenticate.")
 
     blank()
 
 
-# ─── Clear screen ────────────────────────────────────────────────────
+# Clear screen
 
 def clear_screen():
     """Cross-platform clear screen."""

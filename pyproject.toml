@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nodeway"
+version = "1.0.0"
+description = "Professional CLI for managing Nodeway hosting and servers"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Nodeway Team", email = "hello@nodeway.net"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+dependencies = [
+    "py-dactyl>=2.1.2",
+    "websocket-client>=1.6.0",
+    "prompt-toolkit>=3.0.0",
+    "typer[all]>=0.9.0",
+]
+
+[project.scripts]
+nodeway = "nodeway.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+nodeway = ["py.typed"]
