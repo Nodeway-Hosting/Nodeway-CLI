@@ -1,5 +1,5 @@
 from pydactyl import PterodactylClient
-from config import load_config
+from nodeway.core.config import load_config
 
 def get_client():
     cfg = load_config()

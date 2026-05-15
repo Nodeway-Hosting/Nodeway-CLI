@@ -1,6 +1,6 @@
 import sys
-from config import load_config
-from core import ui
+from nodeway.core.config import load_config
+from nodeway.ui import toolkit as ui
 
 
 def show_banner():

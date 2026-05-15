@@ -1,10 +1,10 @@
 import json
 import threading
-from core.client import get_client
-from core.utils import select_server
-from core import ui
-from services import server_service, websocket_service
-from config import load_config
+from nodeway.api.client import get_client
+from nodeway.ui.utils import select_server
+from nodeway.ui import toolkit as ui
+from nodeway.services import server_service, websocket_service
+from nodeway.core.config import load_config
 
 
 def run(args):

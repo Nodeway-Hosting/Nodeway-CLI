@@ -1,7 +1,7 @@
-from core.client import get_client
-from core.utils import select_server
-from core import ui
-from services import server_service
+from nodeway.api.client import get_client
+from nodeway.ui.utils import select_server
+from nodeway.ui import toolkit as ui
+from nodeway.services import server_service
 
 
 def list_servers():

@@ -1,7 +1,7 @@
 import subprocess
 import os
 import platform
-from core import ui
+from nodeway.ui import toolkit as ui
 
 
 def list_files(client, server_id, args, current_path):
