@@ -1,0 +1,29 @@
+{
+  "name": "@sparklee.dev/nodeway",
+  "version": "1.0.0",
+  "description": "NPM wrapper for Nodeway CLI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nodeway/nodeway-cli"
+  },
+  "bin": {
+    "nodeway": "bin/nodeway.js"
+  },
+  "scripts": {
+    "postinstall": "node scripts/install.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [
+    "nodeway",
+    "cli",
+    "hosting",
+    "pterodactyl"
+  ],
+  "author": "Nodeway Team <team@nodeway.net>",
+  "license": "MIT",
+  "dependencies": {
+    "nodeway": "^2.0.5"
+  }
+}

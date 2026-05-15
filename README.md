@@ -17,6 +17,11 @@ A production-grade command-line interface for the Nodeway hosting platform. Insp
 pip install nodeway
 ```
 
+### From npm
+```bash
+npm install nodeway
+```
+
 ### From Source
 ```bash
 git clone https://github.com/nodeway/nodeway-cli.git
